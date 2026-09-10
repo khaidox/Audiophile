@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEQ Audiophile Master for em Thu Phương ❤️</title>
+  <style>
+    :root {
+      --bg-main: #0d1117;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --accent-hover: #79b8ff;
+      --success: #2ea043;
+      --warning: #d29922;
+      --purple: #bc8cff;
+      --pink: #f778ba;
+      --text: #f0f6fc;
+      --text-muted: #8b949e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg-main); color: var(--text); padding: 24px 16px; min-height: 100vh; }
+    .container { max-width: 1050px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    h1 { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    h1 span { color: var(--accent); }
+    .subtitle { color: var(--text-muted); font-size: 14px; }
+
+    .top-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; gap: 14px; }
+    .status-box { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #da3633; box-shadow: 0 0 8px #da3633; transition: all 0.3s; }
+    .status-dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
+    
+    .btn { cursor: pointer; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; border: 1px solid transparent; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-connect { background: var(--accent); color: #0d1117; font-size: 14px; padding: 10px 18px; }
+    .btn-connect:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-apply { background: #21262d; border-color: var(--border); color: var(--accent); }
+    .btn-apply:hover { background: #30363d; border-color: var(--accent); }
+    .btn-save { background: var(--success); color: #fff; }
+    .btn-save:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn:disabled, .btn.disabled { opacity: 0.45 !important; cursor: not-allowed !important; pointer-events: none !important; transform: none !important; }
+
+    /* Graph Canvas */
+    .graph-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 24px; }
+    .graph-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; display: flex; justify-content: space-between; }
+    canvas { width: 100%; height: 160px; display: block; border-radius: 6px; background: #0b0e14; }
+
+    /* Cards Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 18px; }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+    
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.25s; }
+    .card:hover { border-color: #58a6ff66; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .card-title { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .card-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      color: #0d1117;
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+    .card-index.danger-idx {
+      background: linear-gradient(135deg, #da3633, #f85149);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(218, 54, 51, 0.4);
+    }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; background: #21262d; border: 1px solid var(--border); color: var(--text-muted); }
+    .badge.recommended { background: #1f6feb22; border-color: var(--accent); color: var(--accent); }
+    .badge.gold { background: #d2992222; border-color: var(--warning); color: var(--warning); }
+    .badge.danger { background: #da363322; border-color: #da3633; color: #f85149; }
+    
+    .card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px; min-height: 36px; }
+    .ref-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .ref-link:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+    
+    .bands-table { width: 100%; font-size: 11px; margin-bottom: 14px; border-collapse: collapse; }
+    .bands-table th { text-align: left; color: var(--text-muted); padding: 4px 6px; font-weight: 500; }
+    .bands-table td { padding: 4px 6px; border-top: 1px solid #21262d; font-family: monospace; }
+    .pill { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; }
+    .pill-lsq { background: #a371f722; color: var(--purple); border: 1px solid #a371f755; }
+    .pill-pk { background: #2f81f722; color: var(--accent); border: 1px solid #2f81f755; }
+    .pill-hsq { background: #f778ba22; color: var(--pink); border: 1px solid #f778ba55; }
+
+    .card-actions { display: flex; gap: 10px; margin-top: auto; }
+    .card-actions .btn { flex: 1; justify-content: center; }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #238636; color: white; padding: 14px 22px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; transform: translateY(10px); z-index: 1000; }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { background: #da3633; }
+
+    /* Login Overlay */
+    #loginOverlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at 50% 35%, #1c2128 0%, #0d1117 85%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 20px;
+    }
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 30px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+      text-align: center;
+      animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .login-icon { font-size: 44px; margin-bottom: 12px; }
+    .login-card h2 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .login-subtitle { font-size: 13px; color: var(--pink); margin-bottom: 24px; font-weight: 500; }
+    .form-group { text-align: left; margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(247, 120, 186, 0.15); }
+    .login-error {
+      color: #f85149;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+    .login-error.show { display: block; }
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(135deg, #f778ba, #bc8cff);
+      color: #0d1117;
+      border: none;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: transform 0.2s, filter 0.2s;
+    }
+    .btn-login:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-login:active { transform: translateY(0); }
+
+    .user-header-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--pink);
+    }
+    .btn-logout {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { color: #f85149; border-color: #f85149; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login Modal -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-icon">🎧❤️</div>
+    <h2>PEQ Audiophile Master</h2>
+    <p class="login-subtitle">Dành riêng cho em Thu Phương</p>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="loginUser">Tên đăng nhập</label>
+        <input type="text" id="loginUser" placeholder="Nhập tên đăng nhập..." autocomplete="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="loginPass">Mật khẩu</label>
+        <input type="password" id="loginPass" placeholder="Nhập mật khẩu..." autocomplete="current-password" required>
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <button type="submit" class="btn-login">Đăng Nhập Vào Thế Giới Âm Nhạc ❤️</button>
+    </form>
+  </div>
+</div>
+
+<!-- Flash Auth Modal -->
+<div id="flashAuthModal" class="modal-overlay" style="display:none;">
+  <div class="login-card" style="max-width: 400px; text-align: left; position: relative;">
+    <button type="button" onclick="closeFlashAuthModal()" style="position:absolute; top: 16px; right: 18px; background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1;">&times;</button>
+    <div style="text-align:center; margin-bottom: 16px;">
+      <div style="font-size: 36px; margin-bottom: 8px;">🔐</div>
+      <h2 style="font-size: 18px; color: #fff; margin-bottom: 4px;">Xác Thực Quyền Ghi Flash</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Lưu vĩnh viễn cấu hình vào ROM phần cứng yêu cầu tài khoản quản trị.</p>
+    </div>
+    <form id="flashAuthForm" onsubmit="handleFlashAuthSubmit(event)">
+      <div class="form-group">
+        <label for="flashAuthUser">Tài khoản quản trị</label>
+        <input type="text" id="flashAuthUser" placeholder="Nhập tài khoản (khaid)..." autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label for="flashAuthPass">Mật khẩu</label>
+        <input type="password" id="flashAuthPass" placeholder="Nhập mật khẩu..." autocomplete="current-password" required>
+      </div>
+      <div id="flashAuthError" class="login-error"></div>
+      <div style="display: flex; gap: 10px; margin-top: 18px;">
+        <button type="button" class="btn" style="flex: 1; background: #21262d; color: var(--text-main); justify-content: center;" onclick="closeFlashAuthModal()">Hủy</button>
+        <button type="submit" class="btn btn-save" style="flex: 1.5; justify-content: center;">💾 Mở Khóa & Lưu Flash</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="container" id="mainContainer" style="display: none;">
+  <header>
+    <div class="user-header-bar">
+      <span id="currentUserDisplay">Xin chào <b>em Thu Phương ❤️</b></span>
+      <button onclick="handleLogout()" class="btn-logout">Đăng xuất</button>
+    </div>
+    <h1>🎧 PEQ Audiophile Master <span>for em Thu Phương ❤️</span></h1>
+    <p class="subtitle">Thư viện 12 Bộ Tinh Chỉnh Âm Sắc & Chuẩn Tham Chiếu (Hardware PEQ Tunings)</p>
+  </header>
+
+  <div class="top-bar">
+    <div class="status-box">
+      <div id="statusDot" class="status-dot"></div>
+      <span id="statusText">Chưa kết nối DAC (Cắm USB & Bấm Kết Nối)</span>
+    </div>
+    <button id="btnConnect" class="btn btn-connect" onclick="connectDevice()">🔌 Kết Nối Thiết Bị</button>
+  </div>
+
+  <div class="graph-section">
+    <div class="graph-title">
+      <span>ĐÁP TUYẾN TẦN SỐ MỤC TIÊU (FREQUENCY RESPONSE CURVE)</span>
+      <span id="activeProfileLabel" style="color: var(--accent);">Chưa chọn Profile</span>
+    </div>
+    <canvas id="eqCanvas"></canvas>
+  </div>
+
+  <div class="grid" id="profileGrid"></div>
+</div>
+
+<div id="toast">Thông báo</div>
+
+<script>
+const PROFILES = [
+  {
+    id: "test_min",
+    name: "#01. 🧪 Test Mode (Hạ Hết -12 dB)",
+    badge: "⚠️ Test Phản Hồi DAC",
+    danger: true,
+    desc: "Kéo tất cả 5 dải tần số về mức thấp nhất (-12.0 dB) và Preamp -12.0 dB. Bấm 'Nghe Thử' âm lượng sẽ tụt xuống siêu nhỏ ngay lập tức, giúp kiểm chứng thiết bị DAC có đang nhận lệnh PEQ từ trình duyệt hay không.",
+    preamp: -12.0,
+    filter: 1,
+    bands: [
+      { freq: 100, gain: -12.0, q: 0.70, type: 1 },
+      { freq: 500, gain: -12.0, q: 1.00, type: 0 },
+      { freq: 1000, gain: -12.0, q: 1.00, type: 0 },
+      { freq: 4000, gain: -12.0, q: 1.00, type: 0 },
+      { freq: 10000, gain: -12.0, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "subbass_boost",
+    name: "#02. 🔊 Sub-Bass Deep Boost (Nâng Trầm Sâu <150Hz)",
+    badge: "🔥 Uy Lực / Sâu Lắng",
+    recommended: true,
+    desc: "Sử dụng bộ lọc Low-Shelf tại 80Hz (+4.0 dB) và gọt nhẹ 250Hz. Bổ sung lực đập dải siêu trầm uy lực, gọn gàng, rung cảm xúc mà hoàn toàn không làm đục (muddy) giọng hát ca sĩ.",
+    link: "https://autoeq.app/",
+    preamp: -4.0,
+    filter: 2,
+    bands: [
+      { freq: 80, gain: 4.0, q: 0.70, type: 1 },
+      { freq: 250, gain: -1.0, q: 1.00, type: 0 },
+      { freq: 1000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 4000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 10000, gain: 0.0, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "vocal_forward",
+    name: "#03. 🎤 Vocal & Mid-Forward (Tôn Giọng Ca Sĩ)",
+    badge: "🎙️ Ngọt Ngào / Truyền Cảm",
+    recommended: true,
+    desc: "Tăng cường dải trung âm (2kHz +2.5 dB) và làm ấm dải 300Hz. Giọng hát ca sĩ, lời bài hát và lời thoại video được đẩy tiến sát tai, nổi bật, trong trẻo và truyền cảm.",
+    link: "https://en.wikipedia.org/wiki/Equalization_(audio)",
+    preamp: -2.5,
+    filter: 2,
+    bands: [
+      { freq: 100, gain: 1.0, q: 0.70, type: 1 },
+      { freq: 300, gain: 1.5, q: 1.00, type: 0 },
+      { freq: 2000, gain: 2.5, q: 1.40, type: 0 },
+      { freq: 5500, gain: -1.0, q: 1.80, type: 0 },
+      { freq: 10000, gain: 0.0, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "warm_relaxed",
+    name: "#04. ☕ Warm & Relaxed Tilt (Ấm Áp / Chống Mỏi Tai)",
+    badge: "📻 Dốc Nghiêng Âm Học B&K",
+    desc: "Ứng dụng độ dốc tự nhiên (-1 dB/octave) kinh điển của Brüel & Kjær. Tăng nhẹ trầm, hạ thoải đều từ 4kHz đến 10kHz giúp âm thanh đầm ấm, mộc mạc, nghe lâu hàng giờ không đau tai.",
+    link: "https://archimago.blogspot.com/2026/07/room-target-curves-then-now-and-options.html",
+    preamp: -2.5,
+    filter: 3,
+    bands: [
+      { freq: 80, gain: 2.5, q: 0.70, type: 1 },
+      { freq: 250, gain: 1.0, q: 1.00, type: 0 },
+      { freq: 1000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 4500, gain: -2.0, q: 1.50, type: 0 },
+      { freq: 10000, gain: -3.0, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "treble_air",
+    name: "#05. ✨ Treble Air & Sparkle (Mở Rộng Không Gian & Hài Âm)",
+    badge: "💎 Thoáng Đãng / Êm Dịu",
+    desc: "Mở dải siêu cao (>10kHz) nhẹ nhàng (+1.8 dB tại 11.5kHz, Q=0.70). Tinh chỉnh vừa vặn để tránh hiện tượng hiss hay gắt kim loại, mang lại cảm giác thoáng đãng, lách tách tự nhiên và giữ trọn độ sạch của bản thu.",
+    link: "https://www.knowles.com/preferred-listening-response",
+    preamp: -2.0,
+    filter: 1,
+    bands: [
+      { freq: 80, gain: 0.8, q: 0.70, type: 1 },
+      { freq: 250, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 1000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 4000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 11500, gain: 1.8, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "anti_sibilance",
+    name: "#06. 🛡️ Smooth Treble & Anti-Sibilance (Dịu Dải 5k-8k Universal)",
+    badge: "🎯 Triệt Tiêu Chói Gắt Universal",
+    desc: "Làm dịu tổng thể vùng chói 5kHz–8kHz bằng bộ lọc diện rộng (6.3kHz -2.2dB, Q=0.85) thay vì notch hẹp cố định. Thích ứng tối ưu với mọi độ sâu ống tai và eartip, triệt tiêu tiếng xì 's, ch, x' mà âm thanh vẫn mượt mà, tự nhiên.",
+    link: "https://autoeq.app/",
+    preamp: -1.0,
+    filter: 2,
+    bands: [
+      { freq: 100, gain: 1.0, q: 0.70, type: 1 },
+      { freq: 1000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 3500, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 6300, gain: -2.2, q: 0.85, type: 0 },
+      { freq: 8500, gain: -1.5, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "v_shaped",
+    name: "#07. ⚡ V-Shaped Fun & Dynamic (Sôi Động / EDM)",
+    badge: "🎉 Bùng Nổ Năng Lượng",
+    desc: "Nâng dải siêu trầm 70Hz (+4.0 dB) và dải cao 10kHz (+3.0 dB), hạ nhẹ mid 1kHz. Tạo chất âm sôi động, bass nảy bốc lửa, rất phù hợp cho nhạc Dance, Hip-Hop, EDM và Gaming FPS.",
+    link: "https://autoeq.app/",
+    preamp: -4.0,
+    filter: 1,
+    bands: [
+      { freq: 70, gain: 4.0, q: 0.70, type: 1 },
+      { freq: 250, gain: 1.0, q: 1.00, type: 0 },
+      { freq: 1000, gain: -1.5, q: 1.00, type: 0 },
+      { freq: 4000, gain: 1.5, q: 1.50, type: 0 },
+      { freq: 10000, gain: 3.0, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "studio_clarity",
+    name: "#08. 🔬 Studio Clarity & Clean Bass (Kiểm Âm Sạch)",
+    badge: "🎚️ Tuyến Tính / Bóc Tách",
+    desc: "Chuẩn hóa âm sắc theo phương pháp phòng thu: gọt sạch dải đục 250Hz (-1.5 dB), giữ phẳng tuyệt đối trung âm 1kHz và hỗ trợ nhẹ chi tiết. Giúp tách bạch rõ ràng từng nhạc cụ.",
+    link: "https://www.sonarworks.com/blog/learn/what-is-flat-sound-and-should-i-care",
+    preamp: -2.0,
+    filter: 2,
+    bands: [
+      { freq: 80, gain: 2.0, q: 0.70, type: 1 },
+      { freq: 250, gain: -1.5, q: 1.20, type: 0 },
+      { freq: 1000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 3200, gain: 1.5, q: 1.40, type: 0 },
+      { freq: 10000, gain: 1.0, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "jm1_tilt",
+    name: "#09. 🎧 JM-1 Bass & Tilt (5-Band Approx)",
+    badge: "🌟 B&K 5128 Tilt Style",
+    recommended: true,
+    desc: "Mô phỏng 2 tham số đặc trưng từ JM-1 EQ Playground trên thiết bị mô phỏng B&K 5128 (Bass Shelf +2.0 dB @ 105Hz và độ dốc Tilt âm học -0.8 dB).",
+    link: "https://listener800.github.io/eqplayground.html?share=Flat_Target&bass=2&tilt=-0.8&halftilt=0&treble=0&ear=0&air=0&bassfreq=105&bassq=0.707&halftiltfreq=630&treblefreq=2500&trebleq=0.42&earfreq=3000&earq=1&airfreq=10000&airq=0.707",
+    preamp: -2.0,
+    filter: 2,
+    bands: [
+      { freq: 105, gain: 2.0, q: 0.71, type: 1 },
+      { freq: 630, gain: -0.8, q: 1.00, type: 0 },
+      { freq: 2500, gain: 0.0, q: 0.42, type: 0 },
+      { freq: 3000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 10000, gain: 0.0, q: 0.71, type: 2 }
+    ]
+  },
+  {
+    id: "harman_target",
+    name: "#10. 🔴 Harman IEM 2019 (5-Band Approximation)",
+    badge: "🎯 Phong Cách Harman (5-Band)",
+    recommended: true,
+    desc: "Mô phỏng phong cách âm sắc Harman Target In-Ear (Sub-bass ấm nảy, giọng ca sĩ sáng rõ), được tối ưu hóa vừa vặn cho giới hạn 5 dải lọc PEQ của thiết bị DAC.",
+    link: "https://acousticstoday.org/he-perception-and-measurement-of-headphone-sound-quality-what-do-listeners-prefer-sean-e-olive/",
+    preamp: -3.5,
+    filter: 1,
+    bands: [
+      { freq: 75, gain: 3.5, q: 0.70, type: 1 },
+      { freq: 250, gain: -1.0, q: 1.00, type: 0 },
+      { freq: 1200, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 3000, gain: 1.8, q: 1.40, type: 0 },
+      { freq: 10000, gain: 1.0, q: 0.70, type: 2 }
+    ]
+  },
+  {
+    id: "ief_neutral",
+    name: "#11. ⚪ IEF Neutral 2023 (5-Band Approximation)",
+    badge: "⭐ Phong Cách Crinacle (5-Band)",
+    recommended: true,
+    desc: "Mô phỏng phong cách tham chiếu trung tính Crinacle IEF Neutral 2023 (Bass mộc không boost, mid sạch sẽ không muddy, ear-gain tự nhiên 2.8kHz) được tối ưu cho 5 dải lọc PEQ.",
+    link: "https://graph.hangout.audio/iem/",
+    preamp: -1.8,
+    filter: 2,
+    bands: [
+      { freq: 80, gain: 0.0, q: 0.70, type: 1 },
+      { freq: 250, gain: -0.5, q: 1.00, type: 0 },
+      { freq: 1000, gain: 0.0, q: 1.00, type: 0 },
+      { freq: 2800, gain: 1.8, q: 1.30, type: 0 },
+      { freq: 6500, gain: -1.2, q: 1.20, type: 0 }
+    ]
+  },
+  {
+    id: "default",
+    name: "#12. 🔄 Default (Mặc Định Xuất Xưởng)",
+    badge: "Khôi Phục Gốc",
+    desc: "Cấu hình xuất xưởng nguyên bản của thiết bị DAC (Chế độ Bypass Flat 0.0 dB toàn dải tần số).",
+    preamp: 0.0,
+    filter: 1,
+    bands: [
+      { freq: 1000, gain: 0.0, q: 0.70, type: 0 },
+      { freq: 2000, gain: 0.0, q: 0.70, type: 0 },
+      { freq: 5000, gain: 0.0, q: 0.70, type: 0 },
+      { freq: 8000, gain: 0.0, q: 0.70, type: 0 },
+      { freq: 10000, gain: 0.0, q: 0.70, type: 0 }
+    ]
+  }
+];
+
+let hidDevice = null;
+let reportPayloadSize = 20;
+
+function renderCards() {
+  const container = document.getElementById("profileGrid");
+  container.innerHTML = PROFILES.map((p, idx) => `
+    <div class="card" onclick="previewProfile(${idx})">
+      <div>
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-index ${p.danger ? 'danger-idx' : ''}">#${String(idx + 1).padStart(2, '0')}</span>
+            <span>${p.name.replace(/^#\d+\.\s*/, '')}</span>
+          </div>
+          <span class="badge ${p.recommended ? 'recommended' : (p.danger ? 'danger' : '')}">${p.badge}</span>
+        </div>
+        <div class="card-desc">
+          ${p.desc}
+          ${p.link ? `<div><a href="${p.link}" target="_blank" rel="noopener noreferrer" class="ref-link" onclick="event.stopPropagation()">🔗 Chi tiết &amp; biểu đồ đo đạc &rarr;</a></div>` : ''}
+        </div>
+        <table class="bands-table">
+          <thead>
+            <tr><th>B1 (Trầm)</th><th>B2</th><th>B3 (Mid)</th><th>B4</th><th>B5 (Cao)</th><th>Preamp</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              ${p.bands.map(b => `
+                <td>
+                  <div>${b.gain >= 0 ? '+' : ''}${b.gain}dB</div>
+                  <div style="color:var(--text-muted);font-size:10px">${b.freq}Hz</div>
+                  <span class="pill pill-${b.type === 1 ? 'lsq' : b.type === 2 ? 'hsq' : 'pk'}">${b.type === 1 ? 'LSQ' : b.type === 2 ? 'HSQ' : 'PK'}</span>
+                </td>
+              `).join('')}
+              <td style="color:var(--warning);font-weight:bold;">${p.preamp} dB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-apply" onclick="event.stopPropagation(); applyProfile(${idx}, false, this)">⚡ Nghe Thử (RAM)</button>
+        <button class="btn btn-save" onclick="event.stopPropagation(); requestFlashSave(${idx}, this)">💾 Lưu Cố Định (Flash)</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+let isTransferring = false;
+let pendingFlashIdx = null;
+let pendingFlashBtn = null;
+
+function requestFlashSave(idx, btnElement) {
+  const isFlashUnlocked = sessionStorage.getItem("flash_unlocked") === "true";
+  if (isFlashUnlocked) {
+    applyProfile(idx, true, btnElement);
+  } else {
+    pendingFlashIdx = idx;
+    pendingFlashBtn = btnElement;
+    openFlashAuthModal();
+  }
+}
+
+function openFlashAuthModal() {
+  const modal = document.getElementById("flashAuthModal");
+  if (modal) {
+    modal.style.display = "flex";
+    document.getElementById("flashAuthUser").value = "";
+    document.getElementById("flashAuthPass").value = "";
+    const errEl = document.getElementById("flashAuthError");
+    if (errEl) {
+      errEl.innerText = "";
+      errEl.classList.remove("show");
+    }
+    setTimeout(() => document.getElementById("flashAuthUser").focus(), 100);
+  }
+}
+
+function closeFlashAuthModal() {
+  const modal = document.getElementById("flashAuthModal");
+  if (modal) modal.style.display = "none";
+  pendingFlashIdx = null;
+  pendingFlashBtn = null;
+}
+
+function handleFlashAuthSubmit(e) {
+  if (e) e.preventDefault();
+  const user = document.getElementById("flashAuthUser").value.trim().toLowerCase();
+  const pass = document.getElementById("flashAuthPass").value.trim();
+  const errEl = document.getElementById("flashAuthError");
+
+  if (user === "khaid" && pass === "khai123456789") {
+    sessionStorage.setItem("flash_unlocked", "true");
+    closeFlashAuthModal();
+    showToast("🔓 Xác thực thành công tài khoản khaid! Đang ghi Flash...");
+    if (pendingFlashIdx !== null) {
+      applyProfile(pendingFlashIdx, true, pendingFlashBtn);
+    }
+  } else {
+    errEl.innerText = "❌ Sai tài khoản hoặc mật khẩu quản trị!";
+    errEl.classList.add("show");
+    document.getElementById("flashAuthPass").value = "";
+    document.getElementById("flashAuthPass").focus();
+  }
+}
+
+function setButtonsState(disabled, activeBtn = null, loadingText = "") {
+  const allBtns = document.querySelectorAll(".card-actions .btn");
+  allBtns.forEach(btn => {
+    btn.disabled = disabled;
+    if (disabled) {
+      btn.classList.add("disabled");
+    } else {
+      btn.classList.remove("disabled");
+      if (btn.dataset.origText) {
+        btn.innerHTML = btn.dataset.origText;
+        delete btn.dataset.origText;
+      }
+    }
+  });
+
+  if (disabled && activeBtn) {
+    activeBtn.dataset.origText = activeBtn.innerHTML;
+    activeBtn.innerHTML = loadingText;
+  }
+}
+
+async function connectDevice() {
+  if (isTransferring) return;
+  if (!navigator.hid) {
+    showToast("Trình duyệt không hỗ trợ WebHID! Vui lòng dùng Chrome hoặc Edge trên Windows/Linux.", true);
+    return;
+  }
+  try {
+    const devices = await navigator.hid.requestDevice({
+      filters: [
+        { vendorId: 0x2972, productId: 0x0102 }, // USB Audio DAC
+        { vendorId: 0x31b2, productId: 0x0111 }, // JCALLY JM12
+        { vendorId: 0x31b2, productId: 0x0113 }, // JCALLY JM20 Pro
+        { vendorId: 0x31b2 },
+        { vendorId: 0x2972 }
+      ]
+    });
+    if (devices.length === 0) return;
+    hidDevice = devices[0];
+
+    if (!hidDevice.opened) {
+      await hidDevice.open();
+    }
+
+    reportPayloadSize = 20;
+    for (const c of (hidDevice.collections || [])) {
+      for (const r of (c.outputReports || [])) {
+        if (r.reportId === 0x02) {
+          const totalBits = (r.items || []).reduce((sum, item) => sum + (item.reportSize || 8) * (item.reportCount || 1), 0);
+          if (totalBits > 0) reportPayloadSize = Math.ceil(totalBits / 8);
+        }
+      }
+    }
+
+    document.getElementById("statusDot").classList.add("connected");
+    document.getElementById("statusText").innerText = `Đã kết nối: ${hidDevice.productName || 'USB DAC'}`;
+    document.getElementById("btnConnect").innerText = "✅ Đã Kết Nối";
+    document.getElementById("btnConnect").style.background = "var(--success)";
+    document.getElementById("btnConnect").style.color = "#fff";
+    showToast(`Đã kết nối thành công: ${hidDevice.productName || 'DAC'}!`);
+  } catch (err) {
+    console.error(err);
+    showToast("Lỗi kết nối: " + err.message, true);
+  }
+}
+
+async function sendHID(data) {
+  if (!hidDevice || !hidDevice.opened) throw new Error("Chưa kết nối DAC!");
+  const buf = new Uint8Array(reportPayloadSize);
+  buf.set(data.slice(0, reportPayloadSize));
+  try {
+    await hidDevice.sendReport(0x02, buf);
+  } catch (err) {
+    await hidDevice.sendFeatureReport(0x02, buf);
+  }
+  await new Promise(r => setTimeout(r, 35));
+}
+
+async function applyProfile(idx, saveToFlash, btnElement = null) {
+  if (isTransferring) {
+    showToast("⚠️ DAC đang bận xử lý gói tin trước, vui lòng đợi 1 giây!", true);
+    return;
+  }
+
+  const p = PROFILES[idx];
+  previewProfile(idx);
+  
+  if (!hidDevice || !hidDevice.opened) {
+    showToast("⚠️ Vui lòng cắm DAC và bấm nút 'Kết Nối Thiết Bị' ở trên trước!", true);
+    return;
+  }
+
+  isTransferring = true;
+  setButtonsState(true, btnElement, saveToFlash ? "⏳ Đang ghi Flash..." : "⏳ Đang nạp...");
+
+  try {
+    showToast(saveToFlash ? `Đang lưu Flash: ${p.name}...` : `Đang nạp: ${p.name}...`);
+
+    // 1. Hạ Preamp trước để đảm bảo an toàn headroom, triệt tiêu tiếng click/pop
+    let gainVal = Math.round(p.preamp * 2560.0);
+    if (gainVal < 0) gainVal = 65536 + gainVal;
+    await sendHID([0xAA, 0x0A, 0x00, 0x00, 0x17, 0x02, gainVal & 0xFF, (gainVal >> 8) & 0xFF, 0x00, 0xEE]);
+
+    // 2. Nạp 5 dải lọc PEQ
+    for (let i = 0; i < 5; i++) {
+      const b = p.bands[i];
+      let g = Math.round(b.gain * 10);
+      if (g < 0) g = 65536 + g;
+      const f = Math.round(b.freq);
+      const q = Math.round(b.q * 100);
+
+      const pkt = [
+        0xAA, 0x0A, 0x00, 0x00,
+        0x15, 0x08, i,
+        (g >> 8) & 0xFF, g & 0xFF,
+        (f >> 8) & 0xFF, f & 0xFF,
+        (q >> 8) & 0xFF, q & 0xFF,
+        b.type,
+        0xEE
+      ];
+      await sendHID(pkt);
+    }
+
+    // 3. Áp dụng vào RAM DSP (0x18). (Bỏ lệnh 0x11 DAC Filter để tránh reset bộ lọc gây tiếng tách!)
+    await sendHID([0xAA, 0x0A, 0x00, 0x00, 0x18, 0x01, 0x01, 0x00, 0xEE]);
+
+    if (saveToFlash) {
+      await new Promise(r => setTimeout(r, 100));
+      await sendHID([0xAA, 0x0A, 0x00, 0x00, 0x19, 0x01, 0x03, 0x00, 0xEE]);
+      await new Promise(r => setTimeout(r, 200));
+      showToast(`🎉 Đã LƯU VĨNH VIỄN vào Flash: "${p.name}"! Rút ra cắm đâu cũng giữ nguyên.`);
+    } else {
+      showToast(`⚡ Đã áp dụng vào RAM: "${p.name}". Đang nghe thử!`);
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast("Lỗi nạp lệnh: " + err.message, true);
+  } finally {
+    await new Promise(r => setTimeout(r, 150));
+    isTransferring = false;
+    setButtonsState(false);
+  }
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById("toast");
+  t.innerText = msg;
+  t.className = isError ? "error show" : "show";
+  if (t._timeout) clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => { t.className = ""; }, isError ? 5500 : 4000);
+}
+
+function drawCurve(bands) {
+  const canvas = document.getElementById("eqCanvas");
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.parentElement.clientWidth * dpr;
+  canvas.height = 160 * dpr;
+  ctx.scale(dpr, dpr);
+
+  const w = canvas.width / dpr;
+  const h = 160;
+
+  ctx.clearRect(0, 0, w, h);
+
+  ctx.strokeStyle = "#21262d";
+  ctx.lineWidth = 1;
+  const gains = [12, 6, 0, -6, -12];
+  gains.forEach(g => {
+    const y = h / 2 - (g / 15) * (h / 2 - 15);
+    ctx.beginPath();
+    ctx.moveTo(35, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+
+    ctx.fillStyle = "#8b949e";
+    ctx.font = "10px monospace";
+    ctx.fillText(`${g >= 0 ? '+' : ''}${g}dB`, 4, y + 3);
+  });
+
+  const minF = Math.log10(20);
+  const maxF = Math.log10(20000);
+  const freqs = [20, 100, 1000, 10000, 20000];
+  freqs.forEach(f => {
+    const x = 35 + ((Math.log10(f) - minF) / (maxF - minF)) * (w - 45);
+    ctx.strokeStyle = "#1b2129";
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h - 15);
+    ctx.stroke();
+    ctx.fillText(f >= 1000 ? `${f/1000}k` : `${f}Hz`, x - 10, h - 3);
+  });
+
+  if (!bands) return;
+
+  ctx.strokeStyle = "#58a6ff";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+
+  for (let px = 35; px <= w - 10; px++) {
+    const fRatio = (px - 35) / (w - 45);
+    const f = Math.pow(10, minF + fRatio * (maxF - minF));
+
+    let totalGain = 0;
+    bands.forEach(b => {
+      const f0 = b.freq;
+      const g = b.gain;
+      const q = b.q;
+      if (b.type === 0) {
+        const diff = Math.log2(f / f0);
+        totalGain += g * Math.exp(-0.5 * Math.pow(diff * q * 1.5, 2));
+      } else if (b.type === 1) {
+        if (f <= f0) totalGain += g;
+        else {
+          const diff = Math.log2(f / f0);
+          totalGain += g / (1 + Math.pow(diff * 2, 2));
+        }
+      } else if (b.type === 2) {
+        if (f >= f0) totalGain += g;
+        else {
+          const diff = Math.log2(f0 / f);
+          totalGain += g / (1 + Math.pow(diff * 2, 2));
+        }
+      }
+    });
+
+    const py = h / 2 - (totalGain / 15) * (h / 2 - 15);
+    if (px === 35) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle = "#58a6ff33";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+}
+
+function previewProfile(idx) {
+  const p = PROFILES[idx];
+  document.getElementById("activeProfileLabel").innerText = `Đang xem: ${p.name} (${p.preamp} dB Preamp)`;
+  drawCurve(p.bands);
+}
+
+function checkAuth() {
+  const authUser = localStorage.getItem("peq_auth");
+  const overlay = document.getElementById("loginOverlay");
+  const mainContainer = document.getElementById("mainContainer");
+  if (authUser) {
+    overlay.style.display = "none";
+    mainContainer.style.display = "block";
+    const userDisplay = document.getElementById("currentUserDisplay");
+    if (userDisplay) {
+      if (authUser === "khaid") {
+        userDisplay.innerHTML = "Xin chào <b>Khai D (Admin 🛡️)</b>";
+      } else {
+        userDisplay.innerHTML = "Xin chào <b>em Thu Phương ❤️</b>";
+      }
+    }
+    renderCards();
+    setTimeout(() => previewProfile(0), 50);
+  } else {
+    overlay.style.display = "flex";
+    mainContainer.style.display = "none";
+  }
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const user = document.getElementById("loginUser").value.trim().toLowerCase();
+  const pass = document.getElementById("loginPass").value.trim();
+  const errEl = document.getElementById("loginError");
+
+  if (user === "khaid" && pass === "khai123456789") {
+    localStorage.setItem("peq_auth", "khaid");
+    sessionStorage.setItem("flash_unlocked", "true");
+    errEl.classList.remove("show");
+    checkAuth();
+    showToast("Chào mừng Quản trị viên Khai D 🛡️");
+  } else if (user === "emphuong" && pass === "emiu") {
+    localStorage.setItem("peq_auth", "emphuong");
+    errEl.classList.remove("show");
+    checkAuth();
+    showToast("Chào mừng em Thu Phương ❤️");
+  } else {
+    errEl.innerText = "Sai tên đăng nhập hoặc mật khẩu rồi! 🥺";
+    errEl.classList.add("show");
+    document.getElementById("loginPass").value = "";
+    document.getElementById("loginPass").focus();
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem("peq_auth");
+  sessionStorage.removeItem("flash_unlocked");
+  location.reload();
+}
+
+window.addEventListener("resize", () => {
+  if (document.getElementById("mainContainer").style.display !== "none") {
+    drawCurve(PROFILES[0].bands);
+  }
+});
+
+checkAuth();
+</script>
+</body>
+</html>
